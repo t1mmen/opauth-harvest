@@ -41,10 +41,11 @@ class HarvestStrategy extends OpauthStrategy {
 	 * Auth request
 	 */
 	public function request() {
-		$url = 'https://github.com/login/oauth/authorize';
+		$url = 'https://api.harvestapp.com/oauth2/authorize';
 		$params = array(
 			'client_id' => $this->strategy['client_id'],
-			'redirect_uri' => $this->strategy['redirect_uri']
+			'redirect_uri' => $this->strategy['redirect_uri'],
+			'response_type' => 'code',
 		);
 
 		foreach ($this->optionals as $key) {
@@ -60,27 +61,32 @@ class HarvestStrategy extends OpauthStrategy {
 	public function oauth2callback() {
 		if (array_key_exists('code', $_GET) && !empty($_GET['code'])) {
 			$code = $_GET['code'];
-			$url = 'https://github.com/login/oauth/access_token';
+			$url = 'https://api.harvestapp.com/oauth2/token';
 
 			$params = array(
 				'code' => $code,
 				'client_id' => $this->strategy['client_id'],
 				'client_secret' => $this->strategy['client_secret'],
 				'redirect_uri' => $this->strategy['redirect_uri'],
+				'grant_type' => 'authorization_code',
 			);
+
 			if (!empty($this->strategy['state'])) $params['state'] = $this->strategy['state'];
 
 			$response = $this->serverPost($url, $params, null, $headers);
-			parse_str($response, $results);
+			$results = json_decode($response,true);
 
 			if (!empty($results) && !empty($results['access_token'])) {
 				$user = $this->user($results['access_token']);
-
+				debug($user);
+				exit;
 				$this->auth = array(
 					'uid' => $user['id'],
 					'info' => array(),
 					'credentials' => array(
-						'token' => $results['access_token']
+						'token' => $results['access_token'],
+						'refresh_token' =>  $results['refresh_token'],
+						'expires_in' =>  $results['expires_in'],
 					),
 					'raw' => $user
 				);
@@ -121,21 +127,23 @@ class HarvestStrategy extends OpauthStrategy {
 	}
 
 	/**
-	 * Queries Harvest v3 API for user info
+	 * Queries Harvest API for user info
 	 *
 	 * @param string $access_token
 	 * @return array Parsed JSON results
 	 */
 	private function user($access_token) {
-		$user = $this->serverGet('https://api.github.com/user', array('access_token' => $access_token), null, $headers);
-
+		$options['http']['header'] = "Content-Type: application/json";
+		$user = $this->serverGet('https://api.harvestapp.com/account/who_am_i', array('access_token' => $access_token), $options, $headers);
+		debug($access_token);
+		debug($user);
 		if (!empty($user)) {
 			return $this->recursiveGetObjectVars(json_decode($user));
 		}
 		else {
 			$error = array(
 				'code' => 'userinfo_error',
-				'message' => 'Failed when attempting to query Harvest v3 API for user information',
+				'message' => 'Failed when attempting to query Harvest API for user information',
 				'raw' => array(
 					'response' => $user,
 					'headers' => $headers
