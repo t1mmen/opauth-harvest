@@ -78,11 +78,13 @@ class HarvestStrategy extends OpauthStrategy {
 
 			if (!empty($results) && !empty($results['access_token'])) {
 				$user = $this->user($results['access_token']);
-				debug($user);
-				exit;
+
 				$this->auth = array(
-					'uid' => $user['id'],
-					'info' => array(),
+					'uid' => $user['user']['id'],
+					'info' => array(
+						'name' => $user['user']['first_name'].' '.$user['user']['last_name'],
+						'image' => $user['company']['base_uri'].$user['user']['avatar_url'],
+					),
 					'credentials' => array(
 						'token' => $results['access_token'],
 						'refresh_token' =>  $results['refresh_token'],
@@ -91,15 +93,10 @@ class HarvestStrategy extends OpauthStrategy {
 					'raw' => $user
 				);
 
-				$this->mapProfile($user, 'name', 'info.name');
-				$this->mapProfile($user, 'blog', 'info.urls.blog');
-				$this->mapProfile($user, 'avatar_url', 'info.image');
-				$this->mapProfile($user, 'bio', 'info.description');
-				$this->mapProfile($user, 'login', 'info.nickname');
-				$this->mapProfile($user, 'html_url', 'info.urls.github');
-				$this->mapProfile($user, 'email', 'info.email');
-				$this->mapProfile($user, 'location', 'info.location');
-				$this->mapProfile($user, 'url', 'info.urls.github_api');
+				$this->mapProfile($user, 'user.first_name', 'info.first_name'); // look into setting full name here
+				$this->mapProfile($user, 'user.last_name', 'info.last_name');
+				$this->mapProfile($user, 'user.email', 'info.email');
+				$this->mapProfile($user, 'company.base_uri', 'info.urls.base_uri');
 
 				$this->callback();
 			}
@@ -129,14 +126,17 @@ class HarvestStrategy extends OpauthStrategy {
 	/**
 	 * Queries Harvest API for user info
 	 *
+	 * @link         https://github.com/harvesthq/api/blob/master/Authentication/OAuth%202.0.md#for-server-side-applications
 	 * @param string $access_token
 	 * @return array Parsed JSON results
 	 */
 	private function user($access_token) {
+
 		$options['http']['header'] = "Content-Type: application/json";
+		$options['http']['header'] .= "\r\nAccept: application/json";
+
 		$user = $this->serverGet('https://api.harvestapp.com/account/who_am_i', array('access_token' => $access_token), $options, $headers);
-		debug($access_token);
-		debug($user);
+
 		if (!empty($user)) {
 			return $this->recursiveGetObjectVars(json_decode($user));
 		}
