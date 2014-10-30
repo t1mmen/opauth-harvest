@@ -1,17 +1,17 @@
-Opauth-Basecamp
+Opauth-Harvest
 =============
-[Opauth][1] strategy for Basecamp authentication.
+[Opauth][1] strategy for Harvest authentication.
 
-Implemented based on https://github.com/basecamp/bcx-api
+Implemented based on https://github.com/harvesthq/api
 
 Getting started
 ----------------
-1. Install Opauth-Basecamp:
+1. Install Opauth-Harvest:
 
    Using git:
    ```bash
    cd path_to_opauth/Strategy
-   git clone https://github.com/t1mmen/opauth-basecamp.git Basecamp
+   git clone https://github.com/t1mmen/opauth-harvest.git Harvest
    ```
 
   Or, using [Composer](https://getcomposer.org/), just add this to your `composer.json`:
@@ -19,18 +19,18 @@ Getting started
    ```bash
    {
        "require": {
-           "t1mmen/opauth-basecamp": "*"
+           "t1mmen/opauth-harvest": "*"
        }
    }
    ```
    Then run `composer install`.
 
 
-2. Create Basecamp application at https://integrate.37signals.com/
+2. Create Harvest application at https://platform.harvestapp.com/oauth2_clients
 
-3. Configure Opauth-Basecamp strategy with at least `Client ID` and `Client Secret`.
+3. Configure Opauth-Harvest strategy with at least `Client ID` and `Client Secret`.
 
-4. Direct user to `http://path_to_opauth/basecamp` to authenticate
+4. Direct user to `http://path_to_opauth/harvest` to authenticate
 
 Strategy configuration
 ----------------------
@@ -39,7 +39,7 @@ Required parameters:
 
 ```php
 <?php
-'Basecamp' => array(
+'Harvest' => array(
 	'client_id' => 'YOUR CLIENT ID',
 	'client_secret' => 'YOUR CLIENT SECRET'
 )
@@ -47,7 +47,7 @@ Required parameters:
 
 License
 ---------
-Opauth-Basecamp is MIT Licensed
+Opauth-Harvest is MIT Licensed
 Copyright © 2014 Timm Stokke (http://timm.stokke.me)
 
 [1]: https://github.com/opauth/opauth
